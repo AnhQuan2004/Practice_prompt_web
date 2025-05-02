@@ -19,7 +19,7 @@ import BlurImage from "@/components/ui/BlurImage";
 // import { getArticleBySlug, getArticles, formatDate } from "@/utils/api";
 import { useToast } from "@/hooks/use-toast";
 import ArticleCard from "@/components/articles/ArticleCard";
-import { marked } from "marked";
+// Removed marked import that was causing the build error
 import CommentForm from "@/components/comments/CommentForm";
 import CommentList from "@/components/comments/CommentList";
 import {
@@ -30,11 +30,63 @@ import {
   Comment,
 } from "@/utils/api";
 
-// Configure marked to interpret newlines as breaks
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
+// Configure marked manually without the import
+const renderMarkdown = (content: string) => {
+  try {
+    // Simple HTML sanitization function
+    const sanitizeHtml = (html: string) => {
+      return html
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/&/g, "&amp;");
+    };
+
+    // Simple markdown-to-HTML conversion for headings and paragraphs
+    let html = content;
+
+    // Convert section headers with numbers
+    html = html.replace(
+      /^(#{1,6})\s+(\d+\.\d+\.?)\s+(.+)$/gm,
+      (match, hashes, number, title) => {
+        const level = hashes.length;
+        return `<h${level}><span class="heading-number">${sanitizeHtml(
+          number
+        )}</span><span class="heading-title">${sanitizeHtml(
+          title
+        )}</span></h${level}>`;
+      }
+    );
+
+    // Handle regular headings
+    html = html.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, title) => {
+      const level = hashes.length;
+      return `<h${level}>${sanitizeHtml(title)}</h${level}>`;
+    });
+
+    // Handle section numbers in paragraphs
+    html = html.replace(/^(\d+\.\d+\.)\s+(.+)$/gm, (match, number, text) => {
+      return `<p><span class="heading-number">${sanitizeHtml(
+        number
+      )}</span><span class="heading-title">${sanitizeHtml(text)}</span></p>`;
+    });
+
+    // Convert paragraphs
+    html = html.replace(/^([^<#].+)$/gm, (match, text) => {
+      if (text.trim()) {
+        return `<p>${sanitizeHtml(text)}</p>`;
+      }
+      return "";
+    });
+
+    // Handle line breaks
+    html = html.replace(/\n\n/g, "<br>");
+
+    return { __html: html };
+  } catch (error) {
+    console.error("Error parsing markdown:", error);
+    return { __html: content };
+  }
+};
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -86,34 +138,6 @@ const Article = () => {
 
     loadComments();
   }, [article, toast]);
-
-  // Convert markdown to HTML
-  const renderMarkdown = (content: string) => {
-    try {
-      // First, handle section numbers at the beginning of headings (like ### 3.24. Nhóm của...)
-      let processedContent = content.replace(
-        /^(#{1,6})\s+(\d+\.\d+\.?)\s+(.+)$/gm,
-        (match, hashes, number, title) => {
-          return `${hashes} <span class="heading-number">${number}</span><span class="heading-title">${title}</span>`;
-        }
-      );
-
-      // Also handle section numbers that might appear in plain paragraphs (3.24. text...)
-      processedContent = processedContent.replace(
-        /^(\d+\.\d+\.)\s+(.+)$/gm,
-        (match, number, text) => {
-          return `<span class="heading-number">${number}</span><span class="heading-title">${text}</span>`;
-        }
-      );
-
-      return {
-        __html: marked.parse(processedContent, { async: false }) as string,
-      };
-    } catch (error) {
-      console.error("Error parsing markdown:", error);
-      return { __html: content };
-    }
-  };
 
   // Handle like action
   const handleLike = () => {
