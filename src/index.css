@@ -284,3 +284,30 @@ h3 .heading-number {
   display: inline;
   line-height: 1.4;
 }
+
+/* Custom styles for specific components */
+.article-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.article-card:hover {
+  transform: translateY(-5px);
+}
+
+.hero-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+/* Additional custom styles */
