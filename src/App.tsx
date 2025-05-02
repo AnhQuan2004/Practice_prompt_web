@@ -16,6 +16,8 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import ArticleEditor from "./pages/ArticleEditor";
+import Prompting from "./pages/Prompting";
+import Practice from "./pages/Practice";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 
@@ -37,6 +39,8 @@ const App = () => (
             <main className="flex-grow pt-16">
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/prompting" element={<Prompting />} />
+                <Route path="/practice" element={<Practice />} />
                 <Route path="/articles" element={<Articles />} />
                 <Route path="/article/:slug" element={<Article />} />
                 <Route path="/categories" element={<Categories />} />
